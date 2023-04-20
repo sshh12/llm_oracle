@@ -1,11 +1,11 @@
 from langchain.utilities import GoogleSerperAPIWrapper
 from langchain.agents import Tool
 
-from llm_oracle import cache_utils
+from llm_oracle import processing_utils
 
 
 class GoogleSerperSearchWrapper(GoogleSerperAPIWrapper):
-    @cache_utils.cache_func
+    @processing_utils.cache_func
     def run(self, query: str) -> str:
         return super().run(query)
 

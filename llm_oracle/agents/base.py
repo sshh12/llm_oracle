@@ -1,7 +1,7 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-from llm_oracle.markets.abc import MarketEvent
+from llm_oracle.markets.base import MarketEvent
 
 
 class OracleAgent(ABC):

@@ -3,12 +3,12 @@ import requests
 import os
 from bs4 import BeautifulSoup
 
-from llm_oracle import cache_utils
+from llm_oracle import processing_utils
 
 MAX_LINK_LEN = 120
 
 
-@cache_utils.cache_func
+@processing_utils.cache_func
 def scrape_text(url: str, retries: Optional[int] = 2) -> str:
     try:
         resp = requests.get(
