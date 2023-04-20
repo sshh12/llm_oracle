@@ -14,6 +14,8 @@ SUMMARIZE_PROMPT = """
 
 Using the above text from scraping a website, create a very detailed summary of the information.
 
+Include key statistics, dates, numbers, and other details.
+
 Note: This will be used to answer "{ask}"
 """
 
@@ -23,6 +25,8 @@ SUMMARIZE_CHUNKS_PROMPT = """
 ```
 
 Using the above text from scraping a website, create a very detailed summary of the information and provide information about "{ask}".
+
+Include key statistics, dates, numbers, and other details.
 """
 
 
@@ -52,7 +56,10 @@ class ReadLinkWrapper:
     def run(self, query: str) -> str:
         if query.endswith(".pdf"):
             return "Cannot read links that end in pdf"
-        url, ask = query.split(", ")
+        try:
+            url, ask = query.split(", ")
+        except ValueError:
+            return 'input was in the wrong format, it should be "url, question"'
         chunks = chunk_and_strip_html(scrape_text(url), CHUNK_SIZE)
         return summarize_chunks(self.summary_model, chunks, ask)
 

@@ -20,6 +20,10 @@ class MarketEvent(ABC):
     def get_title(self) -> str:
         return
 
+    @abstractmethod
+    def get_universal_id(self) -> str:
+        return
+
 
 class Market(ABC):
     @abstractmethod

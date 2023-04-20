@@ -10,6 +10,10 @@ MAX_CACHE_VAL_LEN = 20
 cache_options = dict(cache=True, cache_dir="cache")
 
 
+def hash_str(val: str) -> str:
+    return str(int(hashlib.md5(val.encode("utf-8")).hexdigest(), 16))
+
+
 def cache_func(func: Callable) -> Callable:
     """
     Basic cache to save $$$ on API calls.
@@ -22,7 +26,7 @@ def cache_func(func: Callable) -> Callable:
         args = [*args] + list(kwargs.values())
         cache_val = re.sub("[^\w\d]", "", repr([arg for arg in args if isinstance(arg, str) or isinstance(arg, int)]))
         if len(cache_val) > MAX_CACHE_VAL_LEN:
-            cache_val = str(int(hashlib.md5(cache_val.encode("utf-8")).hexdigest(), 16))
+            cache_val = hash_str(cache_val)
         date_key = datetime.datetime.now().isoformat()[:10].replace("-", "_")
         cache_key = f"{func.__name__}_{date_key}_{cache_val}"
         cache_fn = os.path.join(cache_options["cache_dir"], cache_key)

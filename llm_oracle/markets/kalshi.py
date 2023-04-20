@@ -29,6 +29,9 @@ class KalshiEvent(MarketEvent):
     def get_market_probability(self) -> float:
         return self.resp_json["last_price"] / 100
 
+    def get_universal_id(self) -> str:
+        return "kalshi:" + self.resp_json["id"]
+
 
 class KalshiMarket(Market):
     def __init__(self, email: str, password: str):

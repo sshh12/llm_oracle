@@ -2,7 +2,7 @@ from typing import List, Dict, Optional
 import datetime
 
 from llm_oracle.markets.base import Market, MarketEvent
-from llm_oracle import text_utils
+from llm_oracle import text_utils, processing_utils
 
 
 class CustomEvent(MarketEvent):
@@ -26,6 +26,9 @@ class CustomEvent(MarketEvent):
 
     def get_market_probability(self) -> float:
         return self.prior
+
+    def get_universal_id(self) -> str:
+        return "custom:" + processing_utils.hash_str(repr([self.question, self.close_date]))
 
     def to_dict(self) -> Dict:
         return {"question": self.question, "close_date": self.close_date}

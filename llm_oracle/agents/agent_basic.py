@@ -5,7 +5,7 @@ from langchain.input import print_text
 
 from llm_oracle import llm
 from llm_oracle.agents.base import OracleAgent
-from llm_oracle.agents.output import OUTPUT_PROMPT, parse_score
+from llm_oracle.agents.output import OUTPUT_PROMPT_P10, parse_p10_output, OUTPUT_PROMPT_LIKELY, parse_likely_output
 from llm_oracle.markets.base import MarketEvent
 
 
@@ -22,20 +22,7 @@ Predict the outcome of the following event.
 
 Respond with what you already might know about this.
 
-{OUTPUT_PROMPT}
-"""
-
-PROMPT_HUMAN_BASIC_AGENT_V2 = f"""
-Predict the outcome of the following event.
-
-{{event_text}}
-
-Respond with:
-* What you learned might know about this.
-* Arguments for the event
-* Arguments against the event
-
-{OUTPUT_PROMPT}
+{OUTPUT_PROMPT_P10}
 """
 
 
@@ -50,6 +37,9 @@ class BasicAgentv1(OracleAgent):
     def get_human_prompt(self) -> str:
         return PROMPT_HUMAN_BASIC_AGENT_V1
 
+    def parse_output(self, result: str) -> float:
+        return parse_p10_output(result)
+
     def predict_event_probability(self, event: MarketEvent) -> float:
         event_text = event.to_text()
         if self.verbose:
@@ -58,7 +48,21 @@ class BasicAgentv1(OracleAgent):
         result = self.model([SystemMessage(content=self.get_system_prompt()), HumanMessage(content=human_message)])
         if self.verbose:
             print_text(result.content + "\n", "yellow")
-        return parse_score(result.content)
+        return self.parse_output(result.content)
+
+
+PROMPT_HUMAN_BASIC_AGENT_V2 = f"""
+Predict the outcome of the following event.
+
+{{event_text}}
+
+Respond with:
+* What you learned might know about this.
+* Arguments for the event
+* Arguments against the event
+
+{OUTPUT_PROMPT_P10}
+"""
 
 
 class BasicAgentv2(BasicAgentv1):
@@ -67,3 +71,28 @@ class BasicAgentv2(BasicAgentv1):
 
     def get_human_prompt(self) -> str:
         return PROMPT_HUMAN_BASIC_AGENT_V2
+
+
+PROMPT_HUMAN_BASIC_AGENT_V3 = f"""
+Predict the outcome of the following event.
+
+{{event_text}}
+
+Respond with:
+* What you learned might know about this.
+* Arguments for the event
+* Arguments against the event
+
+{OUTPUT_PROMPT_LIKELY}
+"""
+
+
+class BasicAgentv3(BasicAgentv1):
+    def get_system_prompt(self) -> str:
+        return PROMPT_SYSTEM_BASIC_AGENT_V1
+
+    def get_human_prompt(self) -> str:
+        return PROMPT_HUMAN_BASIC_AGENT_V3
+
+    def parse_output(self, result: str) -> float:
+        return parse_likely_output(result)
