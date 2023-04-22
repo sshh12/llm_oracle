@@ -24,6 +24,10 @@ class MarketEvent(ABC):
     def get_universal_id(self) -> str:
         return
 
+    @abstractmethod
+    def is_active(self) -> bool:
+        return
+
 
 class Market(ABC):
     @abstractmethod

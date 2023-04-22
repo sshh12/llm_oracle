@@ -30,6 +30,9 @@ class ManifoldEvent(MarketEvent):
     def get_universal_id(self) -> str:
         return "manifold:" + self.event_market.id
 
+    def is_active(self) -> bool:
+        return not self.event_market.isResolved
+
 
 class ManifoldMarket(Market):
     def __init__(self, **kwargs):

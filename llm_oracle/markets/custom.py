@@ -33,6 +33,9 @@ class CustomEvent(MarketEvent):
     def to_dict(self) -> Dict:
         return {"question": self.question, "close_date": self.close_date}
 
+    def is_active(self) -> bool:
+        return True
+
 
 class CustomMarket(Market):
     def __init__(self, events: List[MarketEvent]):
