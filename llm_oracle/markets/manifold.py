@@ -7,6 +7,16 @@ from llm_oracle.markets.base import Market, MarketEvent
 from llm_oracle import text_utils
 
 
+def _content_to_text(node: Dict) -> str:
+    text = []
+    if "content" in node:
+        for content in node["content"]:
+            text.append(_content_to_text(content))
+    if "text" in node:
+        text.append(node["text"])
+    return "\n".join(text)
+
+
 class ManifoldEvent(MarketEvent):
     def __init__(self, event_market: LiteMarket):
         self.event_market = event_market
@@ -16,7 +26,13 @@ class ManifoldEvent(MarketEvent):
         text.append(f"question: {self.event_market.question}")
         text.append(f"close_date: {text_utils.future_date_to_string(self.get_end_date())}")
         text.append(text_utils.world_state_to_string())
+        text.append(f"description: \n```\n{self.get_description().strip()[:2000]}\n```")
         return "\n".join(text)
+
+    def get_description(self) -> str:
+        if self.event_market.description is None:
+            return ""
+        return _content_to_text(self.event_market.description)
 
     def get_title(self) -> str:
         return self.event_market.question
@@ -28,7 +44,7 @@ class ManifoldEvent(MarketEvent):
         return self.event_market.probability
 
     def get_universal_id(self) -> str:
-        return "manifold:" + self.event_market.id
+        return "manifold2:" + self.event_market.id
 
     def is_active(self) -> bool:
         return not self.event_market.isResolved
@@ -43,7 +59,7 @@ class ManifoldMarket(Market):
         self.client = ManifoldClient(**kwargs)
 
     def search(self, *args, **kwargs) -> List[Dict]:
-        return []
+        return [dict(m.__dict__) for m in self.client.list_markets(*args, **kwargs)]
 
     def get_event(self, event_id: str) -> ManifoldEvent:
         if "-" in event_id:
