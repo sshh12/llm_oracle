@@ -36,6 +36,9 @@ class CustomEvent(MarketEvent):
     def is_active(self) -> bool:
         return True
 
+    def get_market_result(self) -> Optional[float]:
+        raise NotImplementedError()
+
 
 class CustomMarket(Market):
     def __init__(self, events: List[MarketEvent]):

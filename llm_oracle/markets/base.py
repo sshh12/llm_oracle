@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import datetime
 from abc import ABC, abstractmethod
 
@@ -14,6 +14,10 @@ class MarketEvent(ABC):
 
     @abstractmethod
     def get_market_probability(self) -> float:
+        return
+
+    @abstractmethod
+    def get_market_result(self) -> Optional[float]:
         return
 
     @abstractmethod

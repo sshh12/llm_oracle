@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import datetime
 
 from pymanifold import ManifoldClient, LiteMarket
@@ -32,6 +32,10 @@ class ManifoldEvent(MarketEvent):
 
     def is_active(self) -> bool:
         return not self.event_market.isResolved
+
+    def get_market_result(self) -> Optional[float]:
+        res_p = self.event_market.resolutionProbability
+        return None if res_p is None else float(res_p)
 
 
 class ManifoldMarket(Market):
