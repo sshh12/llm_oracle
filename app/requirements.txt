@@ -1,2 +1,3 @@
 flask
+gunicorn
 git+https://github.com/sshh12/llm_oracle
