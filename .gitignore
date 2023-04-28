@@ -130,5 +130,6 @@ dmypy.json
 env.bat
 script.py
 cache/*
-*.txt
+pred*.tsv
+*.ipynb
 *.bat

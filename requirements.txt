@@ -1,0 +1,8 @@
+langchain
+openai
+black
+requests
+bs4
+dateparser
+wolframalpha
+kalshi-python
