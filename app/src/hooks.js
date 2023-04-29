@@ -13,7 +13,7 @@ export function useLocalStorage(key, makeDefault) {
   useEffect(() => {
     const curVal = localStorage.getItem(key);
     if (!curVal) {
-      setVal(makeDefaultRef());
+      setVal(makeDefaultRef.current());
     } else {
       setVal(JSON.parse(curVal).value);
     }
