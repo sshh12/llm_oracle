@@ -18,6 +18,16 @@ import {
   ModalBody,
   ModalFooter,
 } from '@chakra-ui/react';
+import {
+  FacebookShareButton,
+  FacebookIcon,
+  RedditShareButton,
+  RedditIcon,
+  LinkedinShareButton,
+  LinkedinIcon,
+  TwitterShareButton,
+  TwitterIcon,
+} from 'react-share';
 import { Alert, AlertIcon, AlertDescription } from '@chakra-ui/react';
 import { SliderThumb } from '@chakra-ui/react';
 import { ExternalLinkIcon, PlusSquareIcon, ChatIcon } from '@chakra-ui/icons';
@@ -123,13 +133,7 @@ function Result() {
           <Link href="/">Make another prediction</Link>
         </Button>
         <AnalysisModalButton job={jobState} />
-        <Button
-          rightIcon={<ExternalLinkIcon />}
-          colorScheme="teal"
-          variant="solid"
-        >
-          Share Prediction
-        </Button>
+        <ShareModalButton job={jobState} />
       </Stack>
     </VStack>
   );
@@ -185,6 +189,51 @@ function AnalysisModalButton({ job }) {
                 <Text key={log}>{log}</Text>
               ))}
             </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={onClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}
+
+function ShareModalButton({ job }) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const shareURL = `https://oracle.sshh.io/results/${job?.id}`;
+
+  return (
+    <>
+      <Button
+        onClick={onOpen}
+        rightIcon={<ExternalLinkIcon />}
+        colorScheme="teal"
+        variant="solid"
+      >
+        Share Prediction
+      </Button>
+
+      <Modal onClose={onClose} isOpen={isOpen} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Share</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Stack direction="row">
+              <TwitterShareButton url={shareURL}>
+                <TwitterIcon size={32} round />
+              </TwitterShareButton>
+              <RedditShareButton url={shareURL}>
+                <RedditIcon size={32} round />
+              </RedditShareButton>
+              <FacebookShareButton url={shareURL}>
+                <FacebookIcon size={32} round />
+              </FacebookShareButton>
+              <LinkedinShareButton url={shareURL}>
+                <LinkedinIcon size={32} round />
+              </LinkedinShareButton>
+            </Stack>
           </ModalBody>
           <ModalFooter>
             <Button onClick={onClose}>Close</Button>

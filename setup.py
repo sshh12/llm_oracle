@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("requirements.txt") as f:
     required = f.read().splitlines()
@@ -11,7 +11,7 @@ setup(
     url="https://github.com/sshh12/llm_oracle",
     author="Shrivu Shankar",
     license="MIT",
-    packages=["llm_oracle"],
+    packages=find_packages(),
     include_package_data=True,
     install_requires=required,
 )
