@@ -149,7 +149,7 @@ function SettingsModalButton({ apiKey, setAPIKey, modelTemp, setModelTemp }) {
           <ModalBody pb={6}>
             <VStack spacing={6}>
               <FormControl>
-                <FormLabel>OpenAI Key</FormLabel>
+                <FormLabel>OpenAI Key (Requires GPT-4)</FormLabel>
                 <Input
                   placeholder="(blank for shared demo key)"
                   value={apiKey}

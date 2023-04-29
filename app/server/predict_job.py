@@ -5,15 +5,25 @@ from pq import PQ
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import CallbackManager
 import logging
+import datetime
 import os
 
 from .models import db, PredictionJob, PredictionJobLog, JobState
 from .llm_model import validate_question, run_agent, LLMEventLoggingCallback
 
 
-def run_job(db, api_key: str, job: PredictionJob):
+MAX_DAILY_DEMO_USES = int(os.environ.get("MAX_DAILY_DEMO_USES", "100"))
+
+
+def run_job(db, api_key: str, job: PredictionJob, out_of_demo_usage: bool):
     job.state = JobState.RUNNING
     db.session.commit()
+
+    if out_of_demo_usage:
+        job.state = JobState.ERROR
+        job.error_message = f"The daily limit of {MAX_DAILY_DEMO_USES} free uses has run out, set your personal OpenAI API in settings and try again."
+        db.session.commit()
+        return
 
     class LoggingCallback(LLMEventLoggingCallback):
         def write_log(self, text: str):
@@ -64,6 +74,18 @@ def run_job(db, api_key: str, job: PredictionJob):
     db.session.commit()
 
 
+def get_demo_key_uses(session) -> int:
+    now = datetime.datetime.utcnow()
+    yesterday = now - datetime.timedelta(days=1)
+    demo_uses = (
+        session.query(PredictionJob)
+        .filter_by(model_custom_api_key=False)
+        .filter(PredictionJob.date_created > yesterday)
+        .count()
+    )
+    return demo_uses
+
+
 def main():
     logging.info("Starting worker")
     engine = create_engine(os.environ["DATABASE_URL"].replace("postgres", "postgresql"))
@@ -76,6 +98,12 @@ def main():
         if job_item is None:
             continue
         job = db.get_or_404(PredictionJob, job_item.data["id"])
-        logging.info(f"Running for {job_item.data}")
+        demo_uses = get_demo_key_uses(db.session)
+        logging.info(f"Running for {job_item.data}, demo uses {demo_uses}")
         api_key = job_item.data["api_key"] if job.model_custom_api_key else os.environ["OPENAI_API_KEY"]
-        run_job(db, api_key=api_key, job=job)
+        run_job(
+            db,
+            api_key=api_key,
+            job=job,
+            out_of_demo_usage=not job.model_custom_api_key and demo_uses > MAX_DAILY_DEMO_USES,
+        )
