@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { APP_HOST } from '../api';
 import {
   Text,
@@ -27,7 +27,29 @@ import {
 import { SearchIcon, SettingsIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { useLocalStorage } from '../hooks';
 
+const PREDICTION_PLACEHOLDERS = [
+  'Will the world end by 2050?',
+  'Will next year be the hottest year on record?',
+  'Will we discover extraterrestrial life within the next decade?',
+  'Will there be a major technological breakthrough in the next 5 years?',
+  'Will a universal basic income be implemented worldwide by 2040?',
+  'Will AI surpass human intelligence by 2030?',
+  'Will humans colonize Mars by 2050?',
+  'Will there be a cure for cancer within the next 20 years?',
+  'Will teleportation become a reality by 2100?',
+  'Will climate change be reversed within the next 50 years?',
+  'Will we achieve world peace by 2060?',
+  'Will the global population reach 10 billion by 2050?',
+  'Will we successfully reverse aging within the next 30 years?',
+  'Will virtual reality become indistinguishable from reality by 2045?',
+  'Will the majority of vehicles be self-driving by 2035?',
+];
+
 function Predict() {
+  const [placeholderIdx, setPlaceholderIdx] = useState(
+    Math.floor(Math.random() * PREDICTION_PLACEHOLDERS.length)
+  );
+  const placeholderPrediction = PREDICTION_PLACEHOLDERS[placeholderIdx];
   const [apiKey, setAPIKey] = useLocalStorage('oracle:apikey', () => '');
   const [modelTemp, setModelTemp] = useLocalStorage(
     'oracle:modelTemp',
@@ -35,24 +57,30 @@ function Predict() {
   );
   const [recentResults] = useLocalStorage('oracle:recent', () => []);
   const [q, setQ] = useState('');
-  const qValid = q.trim().length > 5;
   const predictURL = `${APP_HOST}/predict?q=${window.encodeURIComponent(
-    q
+    q || placeholderPrediction
   )}&apikey=${apiKey}&temp=${modelTemp}`;
   const onPredict = () => {
-    if (qValid) {
-      window.location.href = predictURL;
-    }
+    window.location.href = predictURL;
   };
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPlaceholderIdx((placeholderIdx + 1) % PREDICTION_PLACEHOLDERS.length);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [placeholderIdx]);
   if (predictURL)
     return (
       <VStack spacing={7}>
         <Text fontSize={'5rem'}>🔮</Text>
         <Stack spacing={1}>
-          <InputGroup w={'30vw'} minWidth={'300px'}>
+          <InputGroup w={'40vw'} minWidth={'300px'}>
             <Input
               type="text"
-              placeholder="Will the world end in 2025?"
+              placeholder={placeholderPrediction}
               value={q}
               onChange={e => setQ(e.target.value)}
               borderRadius={1}
@@ -65,7 +93,7 @@ function Predict() {
             <IconButton
               onClick={() => onPredict()}
               borderRadius={1}
-              colorScheme={qValid ? 'blue' : 'red'}
+              colorScheme={'blue'}
               aria-label="Predict"
               icon={<SearchIcon />}
             />
@@ -87,7 +115,7 @@ function Predict() {
               .toReversed()
               .slice(0, 10)
               .map(v => (
-                <Link href={`/results/${v.id}`}>
+                <Link key={v.id} href={`/results/${v.id}`}>
                   <Text fontSize={'1rem'}>
                     <i>{v.question}</i>
                   </Text>
