@@ -111,7 +111,7 @@ function Result() {
       )}
       {jobState?.state === 'running' && (
         <VStack spacing={7}>
-          <Text>Running</Text>
+          <Text>Running (~ 5 mins)</Text>
           <Spinner size="xl" />
           {jobState.logs.length > 0 && (
             <Alert status="info" w={'70vw'} maxW={'800px'}>

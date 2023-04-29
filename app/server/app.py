@@ -11,10 +11,16 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"].replace("post
 db.init_app(app)
 
 
-def create_job(question: str, model_temp: int, job_args: Dict) -> PredictionJob:
+def create_job(question: str, model_temp: int, public: bool, user_id: str, job_args: Dict) -> PredictionJob:
     conn = connect(os.environ["DATABASE_URL"])
     pq = PQ(conn)
-    job = PredictionJob(question=question, model_temperature=model_temp, model_custom_api_key=bool(job_args["api_key"]))
+    job = PredictionJob(
+        user_id=user_id,
+        question=question,
+        model_temperature=model_temp,
+        public=public,
+        model_custom_api_key=bool(job_args["api_key"]),
+    )
     db.session.add(job)
     db.session.commit()
     queue = pq["prediction_jobs"]
@@ -37,13 +43,18 @@ def results(job_id):
 def predict():
     question = request.args["q"]
     model_temp = int(request.args["temp"])
+    public = bool(request.args["public"])
+    api_key = request.args["apikey"]
+    user_id = request.args["userId"]
     job = (
         db.session.query(PredictionJob)
         .filter_by(question=question, model_temperature=model_temp, state=JobState.COMPLETE)
         .first()
     )
     if job is None:
-        job = create_job(request.args["q"], model_temp=model_temp, job_args={"api_key": request.args["apikey"]})
+        job = create_job(
+            request.args["q"], model_temp=model_temp, public=public, user_id=user_id, job_args={"api_key": api_key}
+        )
     return redirect("/results/" + str(job.id))
 
 
@@ -51,3 +62,9 @@ def predict():
 def get_job(job_id):
     job = db.get_or_404(PredictionJob, job_id)
     return jsonify(job.to_json())
+
+
+@app.route("/api/jobs")
+def get_jobs():
+    jobs = db.session.query(PredictionJob).filter_by(public=True, state=JobState.COMPLETE).all()
+    return jsonify([job.to_json() for job in jobs])

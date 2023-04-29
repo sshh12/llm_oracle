@@ -23,6 +23,7 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  Checkbox,
 } from '@chakra-ui/react';
 import { SearchIcon, SettingsIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { useLocalStorage } from '../hooks';
@@ -45,12 +46,16 @@ const PREDICTION_PLACEHOLDERS = [
   'Will the majority of vehicles be self-driving by 2035?',
 ];
 
-function Predict() {
+function Predict({ userId }) {
   const [placeholderIdx, setPlaceholderIdx] = useState(
     Math.floor(Math.random() * PREDICTION_PLACEHOLDERS.length)
   );
   const placeholderPrediction = PREDICTION_PLACEHOLDERS[placeholderIdx];
   const [apiKey, setAPIKey] = useLocalStorage('oracle:apikey', () => '');
+  const [publicVisable, setPublicVisable] = useLocalStorage(
+    'oracle:public',
+    () => true
+  );
   const [modelTemp, setModelTemp] = useLocalStorage(
     'oracle:modelTemp',
     () => 50
@@ -59,7 +64,7 @@ function Predict() {
   const [q, setQ] = useState('');
   const predictURL = `${APP_HOST}/predict?q=${window.encodeURIComponent(
     q || placeholderPrediction
-  )}&apikey=${apiKey}&temp=${modelTemp}`;
+  )}&apikey=${apiKey}&temp=${modelTemp}&public=${publicVisable}&userId=${userId}`;
   const onPredict = () => {
     window.location.href = predictURL;
   };
@@ -77,7 +82,7 @@ function Predict() {
       <VStack spacing={7}>
         <Text fontSize={'5rem'}>🔮</Text>
         <Stack spacing={1}>
-          <InputGroup w={'40vw'} minWidth={'300px'}>
+          <InputGroup w={'40vw'} minWidth={'340px'}>
             <Input
               type="text"
               placeholder={placeholderPrediction}
@@ -106,28 +111,39 @@ function Predict() {
             </Link>
           </Button>
           <SettingsModalButton
-            {...{ apiKey, setAPIKey, modelTemp, setModelTemp }}
+            {...{
+              apiKey,
+              setAPIKey,
+              modelTemp,
+              setModelTemp,
+              publicVisable,
+              setPublicVisable,
+            }}
           />
         </Stack>
         {recentResults && (
           <VStack>
-            {recentResults
-              .toReversed()
-              .slice(0, 10)
-              .map(v => (
-                <Link key={v.id} href={`/results/${v.id}`}>
-                  <Text fontSize={'1rem'}>
-                    <i>{v.question}</i>
-                  </Text>
-                </Link>
-              ))}
+            {recentResults.toReversed().map(v => (
+              <Link key={v.id} href={`/results/${v.id}`}>
+                <Text fontSize={'1rem'}>
+                  <i>{v.question}</i>
+                </Text>
+              </Link>
+            ))}
           </VStack>
         )}
       </VStack>
     );
 }
 
-function SettingsModalButton({ apiKey, setAPIKey, modelTemp, setModelTemp }) {
+function SettingsModalButton({
+  apiKey,
+  setAPIKey,
+  modelTemp,
+  setModelTemp,
+  publicVisable,
+  setPublicVisable,
+}) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -167,6 +183,15 @@ function SettingsModalButton({ apiKey, setAPIKey, modelTemp, setModelTemp }) {
                   </SliderTrack>
                   <SliderThumb />
                 </Slider>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Public Predictions</FormLabel>
+                <Checkbox
+                  isChecked={publicVisable}
+                  onChange={e => setPublicVisable(e.target.checked)}
+                >
+                  Viewable By Public
+                </Checkbox>
               </FormControl>
             </VStack>
           </ModalBody>

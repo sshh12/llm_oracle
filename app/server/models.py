@@ -19,8 +19,10 @@ class PredictionJob(db.Model):
     __tablename__ = "prediction_job"
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = db.Column(UUID(as_uuid=True))
     date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
     state = db.Column(db.Enum(JobState), default=JobState.PENDING)
+    public = db.Column(db.Boolean())
     question = db.Column(db.String(300))
     error_message = db.Column(db.String(300), nullable=True)
     model_temperature = db.Column(db.Integer())
@@ -36,6 +38,8 @@ class PredictionJob(db.Model):
         logs.sort(key=lambda l: l.date_created)
         return {
             "id": str(self.id),
+            "date_created": self.date_created.isoformat(),
+            "public": self.public,
             "question": self.question,
             "error_message": self.error_message,
             "model_temperature": self.model_temperature,

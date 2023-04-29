@@ -1,18 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLocalStorage(key, makeDefault) {
   let [val, _setVal] = useState(null);
-  const setVal = v => {
-    localStorage.setItem(key, JSON.stringify({ value: v }));
-    _setVal(v);
-  };
+  const setVal = useCallback(
+    v => {
+      localStorage.setItem(key, JSON.stringify({ value: v }));
+      _setVal(v);
+    },
+    [key]
+  );
+  const makeDefaultRef = useRef(makeDefault);
   useEffect(() => {
     const curVal = localStorage.getItem(key);
     if (!curVal) {
-      _setVal(makeDefault());
+      setVal(makeDefaultRef());
     } else {
-      _setVal(JSON.parse(curVal).value);
+      setVal(JSON.parse(curVal).value);
     }
-  }, [makeDefault, key, _setVal]);
+  }, [key, setVal, makeDefaultRef]);
   return [val, setVal];
 }

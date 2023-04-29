@@ -9,7 +9,7 @@ import datetime
 import os
 
 from .models import db, PredictionJob, PredictionJobLog, JobState
-from .llm_model import validate_question, run_agent, LLMEventLoggingCallback
+from .predict_llm import validate_question, run_agent, LLMEventLoggingCallback
 
 
 MAX_DAILY_DEMO_USES = int(os.environ.get("MAX_DAILY_DEMO_USES", "100"))
