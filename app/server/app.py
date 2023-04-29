@@ -24,12 +24,13 @@ def create_job(question: str, model_temp: int, job_args: Dict) -> PredictionJob:
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", title="LLM Oracle", desc="Use LLMs to make forecasts about the future.")
 
 
 @app.route("/results/<job_id>")
 def results(job_id):
-    return render_template("index.html")
+    job = db.get_or_404(PredictionJob, job_id)
+    return render_template("index.html", title=f"LLM Oracle | {job.question}", desc=f"{job.question}")
 
 
 @app.route("/predict")
