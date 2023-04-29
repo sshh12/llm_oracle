@@ -1,10 +1,9 @@
 from typing import Optional, List, Dict
 
 from langchain.memory import ConversationBufferMemory
-from langchain.agents import initialize_agent
-from langchain.agents import AgentType
+from langchain.agents import AgentType, initialize_agent, load_tools
 from langchain.input import print_text
-from langchain.agents import load_tools
+from langchain.callbacks.base import CallbackManager
 
 from llm_oracle import llm
 from llm_oracle.tools.search import get_search_tool
@@ -74,12 +73,22 @@ Begin! Reminder to always use the exact characters `Final Answer` when respondin
 
 
 class ToolAgentv1(OracleAgent):
-    def __init__(self, verbose: Optional[bool] = True):
-        self.model = llm.get_default_llm()
+    def __init__(
+        self,
+        verbose: Optional[bool] = True,
+        model: Optional[llm.BaseChatModel] = None,
+        tool_model: Optional[llm.BaseChatModel] = None,
+        callback_manager: Optional[CallbackManager] = None,
+    ):
+        self.model = model or llm.get_default_llm()
+        self.tool_model = tool_model or llm.get_default_fast_llm()
         self.verbose = verbose
+        self.callback_manager = callback_manager
 
     def get_tools(self) -> List:
-        return [get_search_tool(), get_read_link_tool()] + load_tools(["wolfram-alpha", "llm-math"], llm=self.model)
+        return [get_search_tool(), get_read_link_tool(summary_model=self.tool_model)] + load_tools(
+            ["wolfram-alpha", "llm-math"], llm=self.model
+        )
 
     def get_agent_kwargs(self) -> Dict:
         return {
@@ -103,6 +112,7 @@ class ToolAgentv1(OracleAgent):
             verbose=True,
             memory=memory,
             agent_kwargs=self.get_agent_kwargs(),
+            callback_manager=self.callback_manager,
         )
 
         event_text = event.to_text()

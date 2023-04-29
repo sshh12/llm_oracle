@@ -14,7 +14,9 @@ class CustomEvent(MarketEvent):
     def to_text(self, *args, **kwargs) -> str:
         text = ["Prediction Market"]
         text.append(f'Will the following statement resolve to yes by the close date: "{self.question}"')
-        text.append(f"close_date: {text_utils.future_date_to_string(self.get_end_date())}")
+        end_date = self.get_end_date()
+        if end_date is not None:
+            text.append(f"close_date: {text_utils.future_date_to_string(self.get_end_date())}")
         text.append(text_utils.world_state_to_string())
         return "\n".join(text)
 

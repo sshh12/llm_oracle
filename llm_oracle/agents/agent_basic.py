@@ -27,8 +27,8 @@ Respond with what you already might know about this.
 
 
 class BasicAgentv1(OracleAgent):
-    def __init__(self, verbose: Optional[bool] = True):
-        self.model = llm.get_default_llm()
+    def __init__(self, verbose: Optional[bool] = True, model: Optional[llm.BaseChatModel] = None):
+        self.model = model or llm.get_default_llm()
         self.verbose = verbose
 
     def get_system_prompt(self) -> str:
