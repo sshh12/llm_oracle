@@ -15,6 +15,7 @@ Given the users prediction question, validate if it meets the criteria:
 * Must have clear end time ("Will AI take over the world?" is invalid)
 * Must be a prediction question ("Who are you?" is invalid)
 * Must be binary ("When will xyz occur?", "What color will xyz be?" are invalid)
+* It does not need to be a world event
 
 Respond only "VALID" if valid, or a brief explanation as to why the prediction question was invalid and provide a similar question they could ask that would be valid.
 

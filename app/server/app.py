@@ -4,7 +4,7 @@ from psycopg2 import connect
 from pq import PQ
 import os
 
-from .models import db, PredictionJob
+from .models import db, PredictionJob, JobState
 
 app = Flask(__name__, static_folder="../build/static", template_folder="../build")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"].replace("postgres", "postgresql")
@@ -35,9 +35,15 @@ def results(job_id):
 
 @app.route("/predict")
 def predict():
-    job = create_job(
-        request.args["q"], model_temp=int(request.args["temp"]), job_args={"api_key": request.args["apikey"]}
+    question = request.args["q"]
+    model_temp = int(request.args["temp"])
+    job = (
+        db.session.query(PredictionJob)
+        .filter_by(question=question, model_temperature=model_temp, state=JobState.COMPLETE)
+        .first()
     )
+    if job is None:
+        job = create_job(request.args["q"], model_temp=model_temp, job_args={"api_key": request.args["apikey"]})
     return redirect("/results/" + str(job.id))
 
 

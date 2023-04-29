@@ -6,7 +6,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="llm_oracle",
-    version="0.0.5",
+    version="0.0.6",
     description="",
     url="https://github.com/sshh12/llm_oracle",
     author="Shrivu Shankar",
