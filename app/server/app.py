@@ -68,3 +68,21 @@ def get_job(job_id):
 def get_jobs():
     jobs = db.session.query(PredictionJob).filter_by(public=True, state=JobState.COMPLETE).all()
     return jsonify([job.to_json() for job in jobs])
+
+
+@app.route("/api/stats")
+def get_stats():
+    stats = {
+        "jobs_complete": db.session.query(PredictionJob).filter_by(state=JobState.COMPLETE).count(),
+        "jobs_complete_custom_key": db.session.query(PredictionJob)
+        .filter_by(state=JobState.COMPLETE, model_custom_api_key=True)
+        .count(),
+        "jobs_complete_custom_temp": db.session.query(PredictionJob)
+        .filter_by(state=JobState.COMPLETE)
+        .filter(PredictionJob.model_temperature != 50)
+        .count(),
+        "jobs_complete_public": db.session.query(PredictionJob).filter_by(state=JobState.COMPLETE, public=True).count(),
+        "jobs_error": db.session.query(PredictionJob).filter_by(state=JobState.ERROR).count(),
+        "users_unique": db.session.query(PredictionJob).distinct(PredictionJob.user_id).count(),
+    }
+    return jsonify(stats)
