@@ -5,6 +5,7 @@ from pq import PQ
 import os
 
 from .models import db, PredictionJob, JobState
+from .tokens import get_demo_key_recent_uses, MAX_DAILY_DEMO_USES
 
 app = Flask(__name__, static_folder="../build/static", template_folder="../build")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"].replace("postgres", "postgresql")
@@ -84,5 +85,7 @@ def get_stats():
         "jobs_complete_public": db.session.query(PredictionJob).filter_by(state=JobState.COMPLETE, public=True).count(),
         "jobs_error": db.session.query(PredictionJob).filter_by(state=JobState.ERROR).count(),
         "users_unique": db.session.query(PredictionJob).distinct(PredictionJob.user_id).count(),
+        "token_demo_uses": get_demo_key_recent_uses(db.session),
+        "token_demo_max": MAX_DAILY_DEMO_USES,
     }
     return jsonify(stats)
