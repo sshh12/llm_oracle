@@ -60,7 +60,10 @@ function Predict({ userId }) {
     'oracle:modelTemp',
     () => 50
   );
-  const [recentResults] = useLocalStorage('oracle:recent', () => []);
+  const [recentResults, setRecentResults] = useLocalStorage(
+    'oracle:recent',
+    () => []
+  );
   const [q, setQ] = useState('');
   const predictURL = `${APP_HOST}/predict?q=${window.encodeURIComponent(
     q || placeholderPrediction
@@ -118,6 +121,7 @@ function Predict({ userId }) {
               setModelTemp,
               publicVisable,
               setPublicVisable,
+              setRecentResults,
             }}
           />
         </Stack>
@@ -143,6 +147,7 @@ function SettingsModalButton({
   setModelTemp,
   publicVisable,
   setPublicVisable,
+  setRecentResults,
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -167,7 +172,7 @@ function SettingsModalButton({
               <FormControl>
                 <FormLabel>OpenAI Key (Requires GPT-4)</FormLabel>
                 <Input
-                  placeholder="(blank for shared demo key)"
+                  placeholder="(blank for limited shared demo key)"
                   value={apiKey}
                   onChange={e => setAPIKey(e.target.value)}
                 />
@@ -192,6 +197,15 @@ function SettingsModalButton({
                 >
                   Viewable By Public
                 </Checkbox>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Prediction History</FormLabel>
+                <Text pb={'4px'}>
+                  This does not delete predictions from the server, UI only.
+                </Text>
+                <Button colorScheme="red" onClick={() => setRecentResults([])}>
+                  Clear History
+                </Button>
               </FormControl>
             </VStack>
           </ModalBody>
