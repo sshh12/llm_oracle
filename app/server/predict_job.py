@@ -23,7 +23,7 @@ def run_job(db, user: User, api_key: str, job: PredictionJob, use_shared_key: bo
 
     if is_demo and get_demo_key_recent_uses(db.session) > MAX_DAILY_DEMO_USES:
         job.state = JobState.ERROR
-        job.error_message = f"Sorry GPT4 is expensive! The daily limit of {MAX_DAILY_DEMO_USES} free uses has run out, buy more predictions or set your personal OpenAI API in settings and try again."
+        job.error_message = "Sorry GPT4 is expensive! The daily limit of free uses has run out, buy more predictions or set your personal OpenAI API in settings and try again."
         db.session.commit()
         return
 
