@@ -183,6 +183,9 @@ function SettingsModalButton({
             <VStack spacing={6}>
               <FormControl>
                 <FormLabel>User ID</FormLabel>
+                <Text pb={'4px'}>
+                  Purchased credits are tied to your user ID.
+                </Text>
                 <Input value={userId} disabled={true} />
               </FormControl>
               <FormControl>
