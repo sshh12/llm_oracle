@@ -33,6 +33,7 @@ import { SliderThumb } from '@chakra-ui/react';
 import { ExternalLinkIcon, PlusSquareIcon, ChatIcon } from '@chakra-ui/icons';
 import { get } from '../api';
 import { useLocalStorage } from '../hooks';
+import { APP_HOST } from '../api';
 
 function probabilityFormat(p) {
   if (p < 0.1) {
@@ -52,7 +53,7 @@ function probabilityFormat(p) {
   }
 }
 
-function Result() {
+function Result({ userId }) {
   const jobId = window.location.pathname.split('/').at(-1);
   const [jobState, setJobState] = useState(null);
   useEffect(() => {
@@ -131,6 +132,14 @@ function Result() {
       <Stack spacing={4} paddingTop="40px">
         <Button href="" rightIcon={<PlusSquareIcon />} variant="outline">
           <Link href="/">Make another prediction</Link>
+        </Button>
+        <Button rightIcon={<ExternalLinkIcon />} variant="outline">
+          <Link
+            href={`${APP_HOST}/buy_predictions?userId=${userId}`}
+            isExternal
+          >
+            Buy More Predictions
+          </Link>
         </Button>
         <AnalysisModalButton job={jobState} />
         <ShareModalButton job={jobState} />

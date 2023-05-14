@@ -46,7 +46,7 @@ const PREDICTION_PLACEHOLDERS = [
   'Will the majority of vehicles be self-driving by 2035?',
 ];
 
-function Predict({ userId }) {
+function Predict({ userId, user }) {
   const [placeholderIdx, setPlaceholderIdx] = useState(
     Math.floor(Math.random() * PREDICTION_PLACEHOLDERS.length)
   );
@@ -107,10 +107,18 @@ function Predict({ userId }) {
             />
           </InputGroup>
         </Stack>
-        <Stack direction="row" spacing={4}>
-          <Button href="" rightIcon={<ExternalLinkIcon />} variant="outline">
+        <Stack spacing={4}>
+          <Button rightIcon={<ExternalLinkIcon />} variant="outline">
             <Link href="https://github.com/sshh12/llm_oracle" isExternal>
               How does this work?
+            </Link>
+          </Button>
+          <Button rightIcon={<ExternalLinkIcon />} variant="outline">
+            <Link
+              href={`${APP_HOST}/buy_predictions?userId=${userId}`}
+              isExternal
+            >
+              Get Predictions ({user?.predictions_remaining})
             </Link>
           </Button>
           <SettingsModalButton
@@ -122,6 +130,7 @@ function Predict({ userId }) {
               publicVisable,
               setPublicVisable,
               setRecentResults,
+              userId,
             }}
           />
         </Stack>
@@ -148,6 +157,7 @@ function SettingsModalButton({
   publicVisable,
   setPublicVisable,
   setRecentResults,
+  userId,
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -169,6 +179,10 @@ function SettingsModalButton({
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={6}>
+              <FormControl>
+                <FormLabel>User ID</FormLabel>
+                <Input value={userId} disabled={true} />
+              </FormControl>
               <FormControl>
                 <FormLabel>OpenAI Key (Requires GPT-4)</FormLabel>
                 <Input

@@ -2,10 +2,14 @@ from typing import Dict
 from flask import Flask, render_template, request, redirect, jsonify
 from psycopg2 import connect
 from pq import PQ
+import logging
+import stripe
 import os
 
-from .models import db, PredictionJob, JobState
+from .models import db, PredictionJob, JobState, User
 from .tokens import get_demo_key_recent_uses, MAX_DAILY_DEMO_USES
+
+stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
 
 app = Flask(__name__, static_folder="../build/static", template_folder="../build")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"].replace("postgres", "postgresql")
@@ -54,7 +58,11 @@ def predict():
     )
     if job is None:
         job = create_job(
-            request.args["q"], model_temp=model_temp, public=public, user_id=user_id, job_args={"api_key": api_key}
+            request.args["q"],
+            model_temp=model_temp,
+            public=public,
+            user_id=user_id,
+            job_args={"api_key": api_key, "user_id": user_id},
         )
     return redirect("/results/" + str(job.id))
 
@@ -69,6 +77,17 @@ def get_job(job_id):
 def get_jobs():
     jobs = db.session.query(PredictionJob).filter_by(public=True, state=JobState.COMPLETE).all()
     return jsonify([job.to_json() for job in jobs])
+
+
+@app.route("/api/users/<user_id>")
+def get_user(user_id):
+    try:
+        user = db.get_or_404(User, user_id)
+    except:
+        user = User(id=user_id)
+        db.session.add(user)
+        db.session.commit()
+    return jsonify(user.to_json())
 
 
 @app.route("/api/stats")
@@ -89,3 +108,37 @@ def get_stats():
         "token_demo_max": MAX_DAILY_DEMO_USES,
     }
     return jsonify(stats)
+
+
+@app.route("/buy_predictions")
+def buy_predictions():
+    user_id = request.args["userId"]
+    return redirect(os.environ["STRIPE_PAYMENT_LINK"] + f"?client_reference_id={user_id}")
+
+
+@app.route("/stripe-hook", methods=["POST"])
+def stripe_hook():
+    event = None
+    payload = request.data
+    sig_header = request.headers["STRIPE_SIGNATURE"]
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, os.environ["STRIPE_PAYMENT_ENDPOINT_SECRET"])
+    except ValueError as e:
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        raise e
+
+    logging.info(event["type"])
+
+    if event["type"] == "checkout.session.completed":
+        user_id = event["data"]["object"]["client_reference_id"]
+        user = db.get_or_404(User, user_id)
+        user.email = event["data"]["object"]["customer_details"]["email"]
+        line_items = stripe.checkout.Session.list_line_items(event["data"]["object"]["id"])
+        for item in line_items:
+            for _ in range(item["quantity"]):
+                user.predictions_remaining += 20
+                user.predictions_purchased += 20
+        db.session.commit()
+
+    return jsonify(success=True)

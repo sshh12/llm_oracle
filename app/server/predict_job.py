@@ -7,18 +7,23 @@ from langchain.callbacks.base import CallbackManager
 import logging
 import os
 
-from .models import db, PredictionJob, PredictionJobLog, JobState
+from .models import db, PredictionJob, PredictionJobLog, JobState, User
 from .predict_llm import validate_question, run_agent, LLMEventLoggingCallback
 from .tokens import get_demo_key_recent_uses, MAX_DAILY_DEMO_USES
 
 
-def run_job(db, api_key: str, job: PredictionJob, out_of_demo_usage: bool):
+def run_job(db, user: User, api_key: str, job: PredictionJob, use_shared_key: bool):
     job.state = JobState.RUNNING
     db.session.commit()
 
-    if out_of_demo_usage:
+    if user.predictions_remaining > 0 or not use_shared_key:
+        is_demo = False
+    else:
+        is_demo = True
+
+    if is_demo and get_demo_key_recent_uses(db.session) > MAX_DAILY_DEMO_USES:
         job.state = JobState.ERROR
-        job.error_message = f"The daily limit of {MAX_DAILY_DEMO_USES} free uses has run out, set your personal OpenAI API in settings and try again."
+        job.error_message = f"Sorry GPT4 is expensive! The daily limit of {MAX_DAILY_DEMO_USES} free uses has run out, buy more predictions or set your personal OpenAI API in settings and try again."
         db.session.commit()
         return
 
@@ -64,10 +69,13 @@ def run_job(db, api_key: str, job: PredictionJob, out_of_demo_usage: bool):
         p = run_agent(llm, tool_llm, job.question, callback_manager)
         job.state = JobState.COMPLETE
         job.result_probability = p
+        if use_shared_key and not is_demo:
+            user.predictions_remaining -= 1
     except Exception as e:
         logging.error(e)
         job.state = JobState.ERROR
         job.error_message = "Exception: " + str(type(e))
+
     db.session.commit()
 
 
@@ -83,12 +91,14 @@ def main():
         if job_item is None:
             continue
         job = db.get_or_404(PredictionJob, job_item.data["id"])
-        demo_uses = get_demo_key_recent_uses(db.session)
-        logging.info(f"Running for {job_item.data}, demo uses {demo_uses}")
+        logging.info(f"Running for {job_item.data}")
+        user_id = job_item.data["user_id"]
+        user = db.get_or_404(User, user_id)
         api_key = job_item.data["api_key"] if job.model_custom_api_key else os.environ["OPENAI_API_KEY"]
         run_job(
             db,
+            user=user,
             api_key=api_key,
             job=job,
-            out_of_demo_usage=not job.model_custom_api_key and demo_uses > MAX_DAILY_DEMO_USES,
+            use_shared_key=not job.model_custom_api_key,
         )

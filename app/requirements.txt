@@ -3,4 +3,5 @@ gunicorn
 pq
 psycopg2
 Flask-SQLAlchemy
+stripe==5.4.0
 git+https://github.com/sshh12/llm_oracle
