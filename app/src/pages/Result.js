@@ -138,7 +138,7 @@ function Result({ userId }) {
             href={`${APP_HOST}/buy_predictions?userId=${userId}`}
             isExternal
           >
-            Buy More Predictions
+            Buy more predictions
           </Link>
         </Button>
         <AnalysisModalButton job={jobState} />
@@ -183,7 +183,7 @@ function AnalysisModalButton({ job }) {
   return (
     <>
       <Button onClick={onOpen} rightIcon={<ChatIcon />} variant="outline">
-        Analysis
+        View analysis
       </Button>
 
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
@@ -220,7 +220,7 @@ function ShareModalButton({ job }) {
         colorScheme="teal"
         variant="solid"
       >
-        Share Prediction
+        Share prediction
       </Button>
 
       <Modal onClose={onClose} isOpen={isOpen} isCentered>

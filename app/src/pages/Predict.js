@@ -5,6 +5,7 @@ import {
   Link,
   VStack,
   Stack,
+  Flex,
   InputGroup,
   Input,
   IconButton,
@@ -107,18 +108,18 @@ function Predict({ userId, user }) {
             />
           </InputGroup>
         </Stack>
-        <Stack spacing={4}>
-          <Button rightIcon={<ExternalLinkIcon />} variant="outline">
+        <Flex wrap="wrap" justify="center">
+          <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
             <Link href="https://github.com/sshh12/llm_oracle" isExternal>
               How does this work?
             </Link>
           </Button>
-          <Button rightIcon={<ExternalLinkIcon />} variant="outline">
+          <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
             <Link
               href={`${APP_HOST}/buy_predictions?userId=${userId}`}
               isExternal
             >
-              Get Predictions ({user?.predictions_remaining})
+              Get predictions ({user?.predictions_remaining})
             </Link>
           </Button>
           <SettingsModalButton
@@ -133,7 +134,7 @@ function Predict({ userId, user }) {
               userId,
             }}
           />
-        </Stack>
+        </Flex>
         {recentResults && (
           <VStack>
             {recentResults.toReversed().map(v => (
@@ -164,6 +165,7 @@ function SettingsModalButton({
   return (
     <>
       <Button
+        m={2}
         onClick={onOpen}
         rightIcon={<SettingsIcon />}
         colorScheme="teal"
