@@ -135,6 +135,15 @@ function Predict({ userId, user }) {
             }}
           />
         </Flex>
+        <VStack>
+          <Text fontSize={'1rem'} maxW={'500px'}>
+            <b>
+              Note: Due to OpenAI billing limits some requests may fail due to
+              OpenAI related errors. Expecting to fix this by the end of the
+              week. If you bought credits feel free to request a refund.
+            </b>
+          </Text>
+        </VStack>
         {recentResults && (
           <VStack>
             {recentResults.toReversed().map(v => (
