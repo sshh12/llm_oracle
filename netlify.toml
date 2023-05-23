@@ -1,0 +1,12 @@
+[build]
+command = "cd webapp && npm run build"
+functions = "webpp/netlify/functions/"
+publish = "webapp/build/"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  port = 9000
