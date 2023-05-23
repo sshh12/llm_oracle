@@ -1,7 +1,8 @@
 [build]
 command = "cd webapp && npm run build"
-functions = "webpp/netlify/functions/"
-publish = "webapp/build/"
+functions = "netlify/functions/"
+publish = "build/"
+base = "webapp/"
 
 [[redirects]]
   from = "/*"
