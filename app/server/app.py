@@ -132,13 +132,17 @@ def stripe_hook():
 
     if event["type"] == "checkout.session.completed":
         user_id = event["data"]["object"]["client_reference_id"]
-        user = db.get_or_404(User, user_id)
-        user.email = event["data"]["object"]["customer_details"]["email"]
-        line_items = stripe.checkout.Session.list_line_items(event["data"]["object"]["id"])
-        for item in line_items:
-            for _ in range(item["quantity"]):
-                user.predictions_remaining += 20
-                user.predictions_purchased += 20
-        db.session.commit()
+        try:
+            user = db.get_or_404(User, user_id)
+        except Exception as e:
+            logging.error(e)
+        else:
+            user.email = event["data"]["object"]["customer_details"]["email"]
+            line_items = stripe.checkout.Session.list_line_items(event["data"]["object"]["id"])
+            for item in line_items:
+                for _ in range(item["quantity"]):
+                    user.predictions_remaining += 20
+                    user.predictions_purchased += 20
+            db.session.commit()
 
     return jsonify(success=True)
