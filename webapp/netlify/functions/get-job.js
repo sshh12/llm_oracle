@@ -14,7 +14,6 @@ exports.handler = async (event, context) => {
     where: { id: BigInt(jobId) },
     include: { logs: true },
   });
-  console.log(job.logs);
   const logs = job.logs
     .sort((a, b) => a.createdAt - b.createdAt)
     .map(l => l.logText);
