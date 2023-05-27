@@ -86,3 +86,5 @@ export function useLocalStorage(key, makeDefault) {
   }, [key, setVal, makeDefaultRef]);
   return [val, setVal];
 }
+
+export const STRIPE_LINK = `https://buy.stripe.com/8wM2bH14tbC06EE7su`;

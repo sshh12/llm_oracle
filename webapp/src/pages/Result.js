@@ -31,7 +31,7 @@ import {
 import { Alert, AlertIcon, AlertDescription } from '@chakra-ui/react';
 import { SliderThumb } from '@chakra-ui/react';
 import { ExternalLinkIcon, PlusSquareIcon, ChatIcon } from '@chakra-ui/icons';
-import { useLocalStorage, usePollingGet } from '../lib/api';
+import { useLocalStorage, usePollingGet, STRIPE_LINK } from '../lib/api';
 
 function probabilityFormat(p) {
   if (p < 0.1) {
@@ -137,14 +137,16 @@ function Result({ userId }) {
         <Button href="" rightIcon={<PlusSquareIcon />} variant="outline">
           <Link href="/">Make another prediction</Link>
         </Button>
-        <Button rightIcon={<ExternalLinkIcon />} variant="outline">
-          <Link
-            href={`${process.env.REACT_APP_STRIPE_PAYMENT_LINK}?client_reference_id=oracle:::${userId}`}
-            isExternal
-          >
-            Buy more predictions
-          </Link>
-        </Button>
+        {userId && (
+          <Button rightIcon={<ExternalLinkIcon />} variant="outline">
+            <Link
+              href={`${STRIPE_LINK}?client_reference_id=oracle:::${userId}`}
+              isExternal
+            >
+              Buy more predictions
+            </Link>
+          </Button>
+        )}
         <AnalysisModalButton job={jobState} />
         <ShareModalButton job={jobState} />
       </Stack>

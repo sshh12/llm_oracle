@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { SearchIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { useLocalStorage } from '../lib/api';
+import { useLocalStorage, STRIPE_LINK } from '../lib/api';
 import SettingsModal from './../components/SettingsModal';
 
 const PREDICTION_PLACEHOLDERS = [
@@ -128,11 +128,16 @@ function Predict({ userId, user }) {
               How does this work?
             </Link>
           </Button>
-          <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
-            <Link href={``} isExternal>
-              Get predictions ({user?.credits})
-            </Link>
-          </Button>
+          {userId && (
+            <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
+              <Link
+                href={`${STRIPE_LINK}?client_reference_id=oracle:::${userId}`}
+                isExternal
+              >
+                Get predictions ({user?.credits})
+              </Link>
+            </Button>
+          )}
           <SettingsModal
             {...{
               modelTemp,
