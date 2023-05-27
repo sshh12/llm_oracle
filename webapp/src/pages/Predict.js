@@ -107,7 +107,7 @@ function Predict({ userId, user }) {
           <FormControl display="flex" alignItems="center">
             <FormLabel htmlFor="better-model" mb="0">
               <Tooltip
-                label="Use GPT-4 as an agent with the ability to search the internet. Significantly improves detail of results and analysis. Requires paid predictions (uses 10)."
+                label="Use GPT-4 as an agent with the ability to search the internet. Significantly improves detail of results and analysis. Requires paid predictions (uses 10 prediction credits)."
                 fontSize="sm"
                 mr={2}
               >

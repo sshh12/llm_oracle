@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import {
   Text,
   Link,
@@ -54,13 +54,18 @@ function probabilityFormat(p) {
 function Result({ userId }) {
   const jobId = window.location.pathname.split('/').at(-1);
   const [jobState, updateJobState] = usePollingGet(`/get-job?jobId=${jobId}`);
+  const polls = useRef(0);
   useEffect(() => {
     const pollInterval = setInterval(() => {
-      console.log('polling');
       updateJobState().then(resp => {
-        if (resp.state === 'ERROR' || resp.state === 'COMPLETE') {
+        if (
+          resp.state === 'ERROR' ||
+          resp.state === 'COMPLETE' ||
+          polls.current > 400
+        ) {
           clearInterval(pollInterval);
         }
+        polls.current += 1;
       });
     }, 10000);
     return () => {
@@ -103,13 +108,13 @@ function Result({ userId }) {
       )}
       {(jobState === null || jobState.state === 'PENDING') && (
         <VStack spacing={7}>
-          <Text>Waiting to start</Text>
+          <Text>Waiting to start...</Text>
           <Spinner size="xl" />
         </VStack>
       )}
       {jobState?.state === 'RUNNING' && (
         <VStack spacing={7}>
-          <Text>Running (~ 5 mins)</Text>
+          <Text>Running (~ 5 mins, try refreshing if it takes longer)</Text>
           <Spinner size="xl" />
           {jobState.logs.length > 0 && (
             <Alert status="info" w={'70vw'} maxW={'800px'}>

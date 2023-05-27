@@ -1,5 +1,5 @@
 {
-  "name": "oracle-ui",
+  "name": "future-gpt",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -39,5 +39,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "prisma": "^4.14.1"
   }
 }
