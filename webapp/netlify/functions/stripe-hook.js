@@ -36,6 +36,7 @@ exports.handler = async (event, context) => {
           where: { id: userId },
           data: {
             credits: user.credits + 100,
+            creditsPurchased: user.creditsPurchased + 100,
             email: checkoutSessionCompleted.customer_details.email,
           },
         });

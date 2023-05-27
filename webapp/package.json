@@ -19,6 +19,7 @@
     "react-scripts": "5.0.1",
     "react-share": "^4.4.1",
     "stripe": "^12.7.0",
+    "tslib": "^2.5.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
