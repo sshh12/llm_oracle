@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   Text,
   Link,
@@ -31,9 +31,7 @@ import {
 import { Alert, AlertIcon, AlertDescription } from '@chakra-ui/react';
 import { SliderThumb } from '@chakra-ui/react';
 import { ExternalLinkIcon, PlusSquareIcon, ChatIcon } from '@chakra-ui/icons';
-import { get } from '../api';
-import { useLocalStorage } from '../hooks';
-import { APP_HOST } from '../api';
+import { useLocalStorage, usePollingGet } from '../lib/api';
 
 function probabilityFormat(p) {
   if (p < 0.1) {
@@ -55,21 +53,20 @@ function probabilityFormat(p) {
 
 function Result({ userId }) {
   const jobId = window.location.pathname.split('/').at(-1);
-  const [jobState, setJobState] = useState(null);
+  const [jobState, updateJobState] = usePollingGet(`/get-job?jobId=${jobId}`);
   useEffect(() => {
     const pollInterval = setInterval(() => {
-      get(`jobs/${jobId}`).then(resp => {
-        if (resp.state === 'error' || resp.state === 'complete') {
+      console.log('polling');
+      updateJobState().then(resp => {
+        if (resp.state === 'ERROR' || resp.state === 'COMPLETE') {
           clearInterval(pollInterval);
         }
-        setJobState(resp);
       });
-    }, 2000);
-    get(`jobs/${jobId}`).then(resp => setJobState(resp));
+    }, 10000);
     return () => {
       clearInterval(pollInterval);
     };
-  }, [jobId]);
+  }, [jobId, updateJobState]);
 
   const [recentResults, setResultResults] = useLocalStorage(
     'oracle:recent',
@@ -96,21 +93,21 @@ function Result({ userId }) {
   return (
     <VStack spacing={10}>
       <Text fontSize={'3rem'}>{jobState?.question}</Text>
-      {jobState?.result_probability && (
+      {jobState?.state === 'COMPLETE' && jobState?.resultProbability && (
         <Text
           fontSize={'3rem'}
-          color={probabilityFormat(jobState.result_probability / 100)[1]}
+          color={probabilityFormat(jobState.resultProbability / 100)[1]}
         >
-          <b>{probabilityFormat(jobState.result_probability / 100)[0]}</b>
+          <b>{probabilityFormat(jobState.resultProbability / 100)[0]}</b>
         </Text>
       )}
-      {(jobState === null || jobState.state === 'pending') && (
+      {(jobState === null || jobState.state === 'PENDING') && (
         <VStack spacing={7}>
           <Text>Waiting to start</Text>
           <Spinner size="xl" />
         </VStack>
       )}
-      {jobState?.state === 'running' && (
+      {jobState?.state === 'RUNNING' && (
         <VStack spacing={7}>
           <Text>Running (~ 5 mins)</Text>
           <Spinner size="xl" />
@@ -122,20 +119,22 @@ function Result({ userId }) {
           )}
         </VStack>
       )}
-      {jobState?.state === 'error' && (
+      {jobState?.state === 'ERROR' && (
         <Alert status="error" w={'70vw'} maxW={'800px'}>
           <AlertIcon />
-          <AlertDescription>{jobState.error_message}</AlertDescription>
+          <AlertDescription>{jobState.errorMessage}</AlertDescription>
         </Alert>
       )}
-      <FixedLikelihoodSlider p={jobState?.result_probability} />
+      <FixedLikelihoodSlider
+        p={jobState?.state === 'COMPLETE' ? jobState?.resultProbability : null}
+      />
       <Stack spacing={4} paddingTop="40px">
         <Button href="" rightIcon={<PlusSquareIcon />} variant="outline">
           <Link href="/">Make another prediction</Link>
         </Button>
         <Button rightIcon={<ExternalLinkIcon />} variant="outline">
           <Link
-            href={`${APP_HOST}/buy_predictions?userId=${userId}`}
+            href={`${process.env.REACT_APP_STRIPE_PAYMENT_LINK}?client_reference_id=oracle:::${userId}`}
             isExternal
           >
             Buy more predictions

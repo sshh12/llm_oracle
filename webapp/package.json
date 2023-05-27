@@ -7,6 +7,8 @@
     "@chakra-ui/react": "^2.6.0",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@netlify/functions": "^1.6.0",
+    "@prisma/client": "^4.14.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
@@ -16,11 +18,12 @@
     "react-icons": "^3.11.0",
     "react-scripts": "5.0.1",
     "react-share": "^4.4.1",
+    "stripe": "^12.7.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build && prisma generate"
   },
   "eslintConfig": {
     "extends": "react-app"

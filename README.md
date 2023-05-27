@@ -44,15 +44,9 @@ Here's a quick overview of what's saved when you use the demo app. In the event 
 - A unique anonymous user id associated with the questions (you can bypass with new browser, incognito, etc)
 - The GPT agent logs which may contain publically obtainable information about the question
 
-#### Stored Ephemerally
-
-- Custom API Keys while they are in the job queue
-- Browser user-agent and IP address as part of Heroku logs
-
 #### Not Used / Stored
 
-- Social media accounts
-- Other typical site analytics (e.g. facebook tracking, google analytics)
+- Social media accounts you share with
 
 ## Python API
 

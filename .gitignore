@@ -14,7 +14,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -131,6 +130,10 @@ env.bat
 script.py
 cache/*
 app/cache/*
+webapp/cache/*
 pred*.tsv
 *.ipynb
 *.bat
+
+# Local Netlify folder
+.netlify

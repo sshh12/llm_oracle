@@ -1,0 +1,60 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["cockroachdb"]
+  // The following is needed when using deploying to netlify using `netlify deploy` locally
+  // It can be removed if the deployment is configured on netlify to automatically deploy for each commit
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+generator pyclient {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+enum JobState {
+  PENDING 
+  RUNNING
+  ERROR
+  COMPLETE
+}
+
+model PredictionJob {
+  id                 BigInt @id @default(autoincrement())
+  question           String
+  state              JobState
+  public             Boolean @default(true)
+  errorMessage       String?
+  creditCost         Int @default(0)
+  modelTemperature   Int
+  modelName          String
+  resultProbability  Int
+  createdAt          DateTime @default(now())
+  
+  user               User @relation(fields: [userId], references: [id])
+  userId             String
+  logs               PredictionJobLog[]
+
+  @@index([state, createdAt(sort: Desc)])
+}
+
+model PredictionJobLog {
+  id                 BigInt @id @default(autoincrement())
+  logText            String
+  job                PredictionJob @relation(fields: [jobId], references: [id])
+  jobId              BigInt
+}
+
+model User {
+  id                 String @id @unique
+  email              String?
+  credits            Int @default(0)
+  creditsPurchased   Int @default(0)
+  createdAt          DateTime @default(now())
+
+  jobs PredictionJob[]
+}

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ChakraProvider, Box, Grid, theme } from '@chakra-ui/react';
 import { ColorModeSwitcher } from './ColorModeSwitcher';
 import Result from './pages/Result';
 import Predict from './pages/Predict';
-import { useLocalStorage } from './hooks';
+import { useLocalStorage } from './lib/api';
 import { v4 as uuidv4 } from 'uuid';
-import { get } from './api';
+import { usePollingGet } from './lib/api';
 
 function App() {
   const path = window.location.pathname;
@@ -15,13 +15,11 @@ function App() {
   } else {
     Page = Predict;
   }
-  const [userId, setUserId] = useLocalStorage('oracle:userId', () => uuidv4());
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    if (userId) {
-      get(`users/${userId}`).then(user => setUser(user));
-    }
-  }, [userId]);
+  const [userId, setUserId] = useLocalStorage(
+    'oracle:userId',
+    () => 'oracle:' + uuidv4()
+  );
+  const [user] = usePollingGet(`/get-user?userId=${userId}`);
   return (
     <ChakraProvider theme={theme}>
       <Box textAlign="center" fontSize="xl">

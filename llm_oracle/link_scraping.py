@@ -9,17 +9,25 @@ MAX_LINK_LEN = 120
 
 
 @processing_utils.cache_func
-def scrape_text(url: str, retries: Optional[int] = 2) -> str:
+def scrape_text(url: str, retries: Optional[int] = 2, use_proxy: bool = True) -> str:
     try:
-        resp = requests.get(
-            url="https://app.scrapingbee.com/api/v1/",
-            params={
-                "api_key": os.environ["SCRAPINGBEE_API_KEY"],
-                "url": url,
-                "premium_proxy": "true",
-                "country_code": "us",
-            },
-        )
+        if use_proxy:
+            resp = requests.get(
+                url="https://app.scrapingbee.com/api/v1/",
+                params={
+                    "api_key": os.environ["SCRAPINGBEE_API_KEY"],
+                    "url": url,
+                    "premium_proxy": "true",
+                    "country_code": "us",
+                },
+            )
+        else:
+            resp = requests.get(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+                },
+            )
     except RuntimeError as e:
         if retries > 0:
             return scrape_text(url, retries=retries - 1)

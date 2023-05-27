@@ -79,16 +79,19 @@ class ToolAgentv1(OracleAgent):
         model: Optional[llm.BaseChatModel] = None,
         tool_model: Optional[llm.BaseChatModel] = None,
         callback_manager: Optional[CallbackManager] = None,
+        use_proxy: Optional[bool] = True,
     ):
         self.model = model or llm.get_default_llm()
         self.tool_model = tool_model or llm.get_default_fast_llm()
         self.verbose = verbose
         self.callback_manager = callback_manager
+        self.use_proxy = use_proxy
 
     def get_tools(self) -> List:
-        return [get_search_tool(), get_read_link_tool(summary_model=self.tool_model)] + load_tools(
-            ["wolfram-alpha", "llm-math"], llm=self.model
-        )
+        return [
+            get_search_tool(),
+            get_read_link_tool(summary_model=self.tool_model, use_proxy=self.use_proxy),
+        ] + load_tools(["wolfram-alpha", "llm-math"], llm=self.model)
 
     def get_agent_kwargs(self) -> Dict:
         return {

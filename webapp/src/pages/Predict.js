@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { APP_HOST } from '../api';
 import {
   Text,
   Link,
@@ -10,24 +9,14 @@ import {
   Input,
   IconButton,
   Button,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   FormControl,
   FormLabel,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-  Checkbox,
+  Switch,
+  Tooltip,
 } from '@chakra-ui/react';
-import { SearchIcon, SettingsIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { useLocalStorage } from '../hooks';
+import { SearchIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { useLocalStorage } from '../lib/api';
+import SettingsModal from './../components/SettingsModal';
 
 const PREDICTION_PLACEHOLDERS = [
   'Will the world end by 2050?',
@@ -52,7 +41,6 @@ function Predict({ userId, user }) {
     Math.floor(Math.random() * PREDICTION_PLACEHOLDERS.length)
   );
   const placeholderPrediction = PREDICTION_PLACEHOLDERS[placeholderIdx];
-  const [apiKey, setAPIKey] = useLocalStorage('oracle:apikey', () => '');
   const [publicVisable, setPublicVisable] = useLocalStorage(
     'oracle:public',
     () => true
@@ -61,17 +49,23 @@ function Predict({ userId, user }) {
     'oracle:modelTemp',
     () => 50
   );
+  const [useGPT4, setUseGPT4] = useLocalStorage('oracle:usergpt4', () => false);
   const [recentResults, setRecentResults] = useLocalStorage(
     'oracle:recent',
     () => []
   );
   const [q, setQ] = useState('');
-  const predictURL = `${APP_HOST}/predict?q=${window.encodeURIComponent(
-    q || placeholderPrediction
-  )}&apikey=${apiKey}&temp=${modelTemp}&public=${publicVisable}&userId=${userId}`;
+
+  const modelName = useGPT4 ? 'gpt4' : 'gpt3';
+  const question = q || placeholderPrediction;
+  const predictURL = `/.netlify/functions/predict?q=${window.encodeURIComponent(
+    question
+  )}&model=${modelName}&temp=${modelTemp}&public=${publicVisable}&userId=${userId}`;
+
   const onPredict = () => {
     window.location.href = predictURL;
   };
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setPlaceholderIdx((placeholderIdx + 1) % PREDICTION_PLACEHOLDERS.length);
@@ -81,12 +75,13 @@ function Predict({ userId, user }) {
       clearTimeout(timeout);
     };
   }, [placeholderIdx]);
+
   if (predictURL)
     return (
       <VStack spacing={7}>
         <Text fontSize={'5rem'}>🔮</Text>
         <Stack spacing={1}>
-          <InputGroup w={'40vw'} minWidth={'340px'}>
+          <InputGroup w={'60vw'} minWidth={'340px'}>
             <Input
               type="text"
               placeholder={placeholderPrediction}
@@ -109,23 +104,37 @@ function Predict({ userId, user }) {
           </InputGroup>
         </Stack>
         <Flex wrap="wrap" justify="center">
+          <FormControl display="flex" alignItems="center">
+            <FormLabel htmlFor="better-model" mb="0">
+              <Tooltip
+                label="Use GPT-4 as an agent with the ability to search the internet. Significantly improves detail of results and analysis. Requires paid predictions (uses 10)."
+                fontSize="sm"
+                mr={2}
+              >
+                Improve results with GPT-4
+              </Tooltip>
+            </FormLabel>
+
+            <Switch
+              id="better-model"
+              isChecked={useGPT4}
+              onChange={e => setUseGPT4(e.target.checked)}
+            />
+          </FormControl>
+        </Flex>
+        <Flex wrap="wrap" justify="center">
           <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
             <Link href="https://github.com/sshh12/llm_oracle" isExternal>
               How does this work?
             </Link>
           </Button>
           <Button m={2} rightIcon={<ExternalLinkIcon />} variant="outline">
-            <Link
-              href={`${APP_HOST}/buy_predictions?userId=${userId}`}
-              isExternal
-            >
-              Get predictions ({user?.predictions_remaining})
+            <Link href={``} isExternal>
+              Get predictions ({user?.credits})
             </Link>
           </Button>
-          <SettingsModalButton
+          <SettingsModal
             {...{
-              apiKey,
-              setAPIKey,
               modelTemp,
               setModelTemp,
               publicVisable,
@@ -135,15 +144,6 @@ function Predict({ userId, user }) {
             }}
           />
         </Flex>
-        <VStack>
-          <Text fontSize={'1rem'} maxW={'500px'}>
-            <b>
-              Note: Due to OpenAI billing limits some requests may fail due to
-              OpenAI related errors. Expecting to fix this by the end of the
-              week. If you bought credits feel free to request a refund.
-            </b>
-          </Text>
-        </VStack>
         {recentResults && (
           <VStack>
             {recentResults.toReversed().map(v => (
@@ -157,93 +157,6 @@ function Predict({ userId, user }) {
         )}
       </VStack>
     );
-}
-
-function SettingsModalButton({
-  apiKey,
-  setAPIKey,
-  modelTemp,
-  setModelTemp,
-  publicVisable,
-  setPublicVisable,
-  setRecentResults,
-  userId,
-}) {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  return (
-    <>
-      <Button
-        m={2}
-        onClick={onOpen}
-        rightIcon={<SettingsIcon />}
-        colorScheme="teal"
-        variant="solid"
-      >
-        Settings
-      </Button>
-
-      <Modal onClose={onClose} isOpen={isOpen} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Settings</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <VStack spacing={6}>
-              <FormControl>
-                <FormLabel>User ID</FormLabel>
-                <Text pb={'4px'}>
-                  Purchased credits are tied to your user ID.
-                </Text>
-                <Input value={userId} disabled={true} />
-              </FormControl>
-              <FormControl>
-                <FormLabel>OpenAI Key (Requires GPT-4)</FormLabel>
-                <Input
-                  placeholder="(blank for limited shared demo key)"
-                  value={apiKey}
-                  onChange={e => setAPIKey(e.target.value)}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Model Temperature</FormLabel>
-                <Slider
-                  defaultValue={modelTemp}
-                  onChange={v => setModelTemp(v)}
-                >
-                  <SliderTrack>
-                    <SliderFilledTrack />
-                  </SliderTrack>
-                  <SliderThumb />
-                </Slider>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Public Predictions</FormLabel>
-                <Checkbox
-                  isChecked={publicVisable}
-                  onChange={e => setPublicVisable(e.target.checked)}
-                >
-                  Viewable By Public
-                </Checkbox>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Prediction History</FormLabel>
-                <Text pb={'4px'}>
-                  This does not delete predictions from the server, UI only.
-                </Text>
-                <Button colorScheme="red" onClick={() => setRecentResults([])}>
-                  Clear History
-                </Button>
-              </FormControl>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onClose}>Close & Save</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
-  );
 }
 
 export default Predict;

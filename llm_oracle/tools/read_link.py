@@ -47,11 +47,12 @@ def summarize_chunks(model: llm.LLMModel, chunks: List[str], ask: str) -> str:
 
 
 class ReadLinkWrapper:
-    def __init__(self, summary_model: Optional[llm.LLMModel] = None):
+    def __init__(self, summary_model: Optional[llm.LLMModel] = None, use_proxy: bool = True):
         if summary_model is None:
             self.summary_model = llm.get_default_fast_llm()
         else:
             self.summary_model = summary_model
+        self.use_proxy = use_proxy
 
     def run(self, query: str) -> str:
         if query.endswith(".pdf"):
@@ -60,7 +61,7 @@ class ReadLinkWrapper:
             url, ask = query.split(", ")
         except ValueError:
             return 'input was in the wrong format, it should be "url, question"'
-        chunks = chunk_and_strip_html(scrape_text(url), CHUNK_SIZE)
+        chunks = chunk_and_strip_html(scrape_text(url, use_proxy=self.use_proxy), CHUNK_SIZE)
         return summarize_chunks(self.summary_model, chunks, ask)
 
 

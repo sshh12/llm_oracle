@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.input import print_text
@@ -27,9 +27,15 @@ Respond with what you already might know about this.
 
 
 class BasicAgentv1(OracleAgent):
-    def __init__(self, verbose: Optional[bool] = True, model: Optional[llm.BaseChatModel] = None):
+    def __init__(
+        self,
+        verbose: Optional[bool] = True,
+        model: Optional[llm.BaseChatModel] = None,
+        output_callback: Optional[Callable[[str], None]] = None,
+    ):
         self.model = model or llm.get_default_llm()
         self.verbose = verbose
+        self.output_callback = output_callback
 
     def get_system_prompt(self) -> str:
         return PROMPT_SYSTEM_BASIC_AGENT_V1
@@ -46,6 +52,8 @@ class BasicAgentv1(OracleAgent):
             print_text(event_text + "\n", "green")
         human_message = self.get_human_prompt().format(event_text=event_text)
         result = self.model([SystemMessage(content=self.get_system_prompt()), HumanMessage(content=human_message)])
+        if self.output_callback:
+            self.output_callback(result.content)
         if self.verbose:
             print_text(result.content + "\n", "yellow")
         return self.parse_output(result.content)
